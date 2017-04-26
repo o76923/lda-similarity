@@ -1,0 +1,14 @@
+tasks:
+  - type: file_convert
+    space: Management
+    from:
+      headers: false
+      numbered: false
+      files:
+        - paragraphs_Management.txt
+    stopwords: stopwords.txt
+  - type: train_topics
+    space: Management
+
+options:
+  cores: 19
