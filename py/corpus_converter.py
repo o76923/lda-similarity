@@ -5,7 +5,7 @@ from py.configurator import ConvertSettings
 from functools import partial
 
 
-class FileConverter(object):
+class CorpusConverter(object):
 
     def __init__(self, config: ConvertSettings, announcer):
         self._cfg = config

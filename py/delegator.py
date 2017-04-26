@@ -2,7 +2,7 @@ from datetime import datetime
 from functools import partial
 
 from py.configurator import ConfigSettings, CONVERT_TASK
-from py.file_converter import FileConverter
+from py.corpus_converter import CorpusConverter
 
 
 def echo_message(msg, process, start):
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     announcer("Loaded Configuration")
     for task in cfg.tasks:
         if task.type == CONVERT_TASK:
-            f = FileConverter(task, partial(echo_message, start=start_time))
-            f.main()
+            c = CorpusConverter(task, partial(echo_message, start=start_time))
+            c.main()
         announcer("Finished Task")
     announcer("Done")

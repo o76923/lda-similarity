@@ -81,7 +81,7 @@ class ConfigSettings(object):
         try:
             task.file_list = t["from"]["files"]
         except KeyError:
-            raise Exception("You must specify some files to read from")
+            raise Exception("You must specify some corpus files to read from")
 
         try:
             task.headers = t["from"]["headers"]
@@ -110,9 +110,9 @@ class ConfigSettings(object):
 
     def _load_task(self, t):
         try:
-            if t["type"] == "file_convert":
+            if t["type"] == "corpus_convert":
                 return self._initialize_convert(t)
             else:
-                raise Exception("Only the file_convert task is supported at this time.")
+                raise Exception("Only the corpus_convert task is supported at this time.")
         except KeyError:
             raise Exception("Task type must be specified")
