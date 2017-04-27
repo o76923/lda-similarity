@@ -1,8 +1,10 @@
 from datetime import datetime
 from functools import partial
 
-from py.configurator import ConfigSettings, CONVERT_TASK
-from py.corpus_converter import CorpusConverter
+from py.configurator import ConfigSettings, CONVERT_TASK, TRAIN_TASK, INFERENCE_TASK
+from py.file_converter import FileConverter
+from py.topic_trainer import TopicTrainer
+from py.inferencer import Inferencer
 
 
 def echo_message(msg, process, start):
@@ -20,8 +22,20 @@ if __name__ == "__main__":
     cfg = ConfigSettings()
     announcer("Loaded Configuration")
     for task in cfg.tasks:
-        if task.type == CONVERT_TASK:
-            c = CorpusConverter(task, partial(echo_message, start=start_time))
-            c.main()
+        for st in task.subtasks:
+            if st.type == CONVERT_TASK:
+                c = FileConverter(st, partial(echo_message, start=start_time))
+                c.main()
+        echo_message("Ran all subtasks", process="Delegator", start=start_time)
+        if task.type == TRAIN_TASK:
+            print("train task")
+            t = TopicTrainer(task, partial(echo_message, start=start_time))
+        elif task.type == INFERENCE_TASK:
+            print("inference task")
+            t = Inferencer(task, partial(echo_message, start=start_time))
+        try:
+            t.main()
+        except NameError:
+            raise Exception("Task was of an invalid type")
         announcer("Finished Task")
     announcer("Done")

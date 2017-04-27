@@ -16,7 +16,7 @@ RUN echo "deb http://http.debian.net/debian jessie-backports main" > /etc/apt/so
     && ant \
     && apt-get purge --auto-remove -y wget ant openjdk-8-jdk \
     && rm -rf /var/lib/apt/lists/* \
-    && pip install pyyaml
+    && pip install pandas pyyaml
 
 
 #    && mkdir /app/jar \
