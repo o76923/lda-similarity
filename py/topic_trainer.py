@@ -1,6 +1,6 @@
 import os
 from functools import partial
-import subprocess
+from py.runner import run_cmd
 import pandas as pd
 
 from py.configurator import Train
@@ -12,27 +12,20 @@ class TopicTrainer(object):
         self._cfg = config
         self.announcer = partial(announcer, process="TopicTrainer")
 
-    def tww_to_df(self):
-        df = pd.read_csv("/app/data/temp/topic_word_weights.txt",
-                         header=None,
-                         names=("topic_id", "word", "weight"),
-                         dtype={
-                             "topic_id": int,
-                             "word": str,
-                             "weight": float
-                         },
-                         index_col=None,
-                         sep="\t")
-        pv = df.pivot(index='word', columns='topic_id', values='weight')
-        pv.to_pickle("/app/data/spaces/{space_name}/topic_word_weight.pkl".format(space_name=self._cfg.space_name))
+    def _make_space_dir(self):
+        try:
+            os.makedirs("/app/data/spaces/{space_name}".format(space_name=self._cfg.space_name))
+        except FileExistsError:
+            pass
+        self.announcer("Created space directory if needed")
 
-    def main(self):
+    def _make_cmd(self):
         cmd = "Mallet/bin/mallet " \
               "train-topics " \
-              "--input /app/data/temp/{space_name}.mallet " \
+              "--input {temp_dir}/{space_name}.mallet " \
               "--output-state /app/data/spaces/{space_name}/topic_state.gz " \
               "--inferencer-filename /app/data/spaces/{space_name}/inferencer.gz " \
-              "--topic-word-weights-file /app/data/temp/topic_word_weights.txt " \
+              "--topic-word-weights-file {temp_dir}/topic_word_weights.txt " \
               "--num-topics {num_topics} " \
               "--num-threads {num_threads} " \
               "--num-iterations {iterations} " \
@@ -48,9 +41,31 @@ class TopicTrainer(object):
                                      optimize_interval=self._cfg.optimize_interval,
                                      burn_in=self._cfg.burn_in,
                                      alpha=self._cfg.alpha,
-                                     beta=self._cfg.beta)
+                                     beta=self._cfg.beta,
+                                     temp_dir=self._cfg.temp_dir)
         if self._cfg.symmetric_alpha:
             cmd += " --use-symmetric-alpha true"
-        subprocess.run(["bash", "-c", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self.tww_to_df()
+        self.announcer("Made cmd")
+        return cmd
+
+    def tww_to_df(self):
+        df = pd.read_csv("{temp_dir}/topic_word_weights.txt".format(temp_dir=self._cfg.temp_dir),
+                         header=None,
+                         names=("topic_id", "word", "weight"),
+                         dtype={
+                             "topic_id": int,
+                             "word": str,
+                             "weight": float
+                         },
+                         index_col=None,
+                         sep="\t")
+        pv = df.pivot(index='word', columns='topic_id', values='weight')
+        pv.to_pickle("/app/data/spaces/{space_name}/topic_word_weight.pkl".format(space_name=self._cfg.space_name))
         self.announcer("Ran train_topic task in Mallet")
+
+    def main(self):
+        self._make_space_dir()
+        cmd = self._make_cmd()
+        run_cmd(cmd)
+        self.announcer("Ran command")
+        self.tww_to_df()

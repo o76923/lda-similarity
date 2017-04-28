@@ -3,6 +3,8 @@ from shutil import rmtree
 from datetime import datetime
 from functools import partial
 
+import subprocess
+
 from py.configurator import ConfigSettings, CONVERT_TASK, TRAIN_TASK, INFERENCE_TASK, SIMILARITY_TASK
 from py.file_converter import FileConverter
 from py.topic_trainer import TopicTrainer
@@ -25,7 +27,7 @@ if __name__ == "__main__":
     cfg = ConfigSettings()
     announcer("Loaded Configuration")
 
-    os.mkdir(cfg.temp_dir)
+    os.makedirs(cfg.temp_dir)
     announcer("Created temp directory at {}".format(cfg.temp_dir))
 
     for task in cfg.tasks:

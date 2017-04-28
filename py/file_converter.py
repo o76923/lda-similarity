@@ -32,9 +32,10 @@ class FileConverter(object):
     def _import_file(self):
         cmd = "/app/Mallet/bin/mallet " \
               "import-file " \
-              "--input /app/data/temp/item.txt " \
-              "--output /app/data/temp/{output_file} " \
-              "--keep-sequence ".format(output_file=self._cfg.out_file)
+              "--input {temp_dir}/item.txt " \
+              "--output {temp_dir}/{output_file} " \
+              "--keep-sequence ".format(output_file=self._cfg.out_file,
+                                        temp_dir=self._cfg.temp_dir)
         if self._cfg.pipe_from_space:
             cmd += "--use-pipe-from /app/data/spaces/{space_name}/topic_state.gz ".format(space_name=self._cfg.space_name)
         if self._cfg.stopword_file:
@@ -50,12 +51,13 @@ class FileConverter(object):
         else:
             cmd += "--remove-stopwords"
         subprocess.run(["bash", "-c", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self.announcer("Ran file_convert task in Mallet")
+        self.announcer("Ran cmd to convert file")
 
     def main(self):
         self.announcer("Started to convert file")
-        with open("/app/data/temp/item.txt".format(self._cfg.space_name, self._cfg.out_file), "w") as out_file:
+        with open("{temp_dir}/item.txt".format(temp_dir=self._cfg.temp_dir), "w") as out_file:
             for paragraph_id, text in self._load_files(self._cfg.file_list):
                 out_file.write("{}\ten\t{}\n".format(paragraph_id, text))
+        self.announcer("Wrote item.txt for use as import")
         self._import_file()
         self.announcer("Converted file")

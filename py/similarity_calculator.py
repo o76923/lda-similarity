@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from sklearn.metrics.pairwise import pairwise_distances
 from functools import partial
 from py.configurator import Similarity
@@ -13,7 +14,7 @@ class SimilarityCalculator(object):
         self.announcer = partial(announcer, process="SimCalculator")
 
     def _load_sentence_distributions(self):
-        df = pd.read_csv("/app/data/temp/item.topics",
+        df = pd.read_csv("{temp_dir}/item.topics".format(temp_dir=self._cfg.temp_dir),
                          skiprows=1,
                          header=None,
                          index_col=0,
@@ -21,6 +22,13 @@ class SimilarityCalculator(object):
         df.columns = ["sentence_id", ] + ["topic-{}".format(i) for i in range(df.shape[1]-1)]
         df.set_index("sentence_id", drop=True, append=False, inplace=True)
         return df
+
+    def _make_output_dir(self):
+        try:
+            os.mkdir("/app/data/output/")
+        except FileExistsError:
+            pass
+        self.announcer("Created output directory if needed")
 
     def get_pair_distance(self, sentence_distributions):
         dist_matrix = pairwise_distances(sentence_distributions.as_matrix(), metric='cosine', n_jobs=self._cfg.num_cores)
@@ -40,4 +48,5 @@ class SimilarityCalculator(object):
         keys = sentence_distributions.index.tolist()
         sims = self.get_pair_distance(sentence_distributions)
         self.announcer("Calculated distances")
+        self._make_output_dir()
         self.write_sims_to_file(keys, sims)

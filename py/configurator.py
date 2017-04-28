@@ -9,6 +9,7 @@ CONVERT_TASK = 1
 TRAIN_TASK = 2
 INFERENCE_TASK = 3
 SIMILARITY_TASK = 4
+CONFIG_FILE = "/app/data/"+os.environ.get("CONFIG_FILE", "config.yml")
 
 
 class Task(object):
@@ -72,16 +73,16 @@ class ConfigSettings(object):
     num_cores: int
     temp_dir: str
 
-    def __init__(self, filename="/app/data/config.yml"):
-        self._read_config(filename)
+    def __init__(self):
+        self._read_config()
         self._load_global()
-        self.temp_dir = "/tmp/lda_calc_{}/".format(uuid4())
+        self.temp_dir = "/tmp/lda_calc_{}".format(uuid4())
         self.tasks = []
         for t in self._cfg['tasks']:
             self._load_task(t)
 
-    def _read_config(self, filename):
-        with open(filename) as in_file:
+    def _read_config(self):
+        with open(CONFIG_FILE) as in_file:
             self._cfg = yaml.load(in_file.read())
 
     def _load_global(self):
@@ -191,7 +192,7 @@ class ConfigSettings(object):
             raise Exception("The hyper parameter symmetric_alpha must be a boolean")
 
         self._initialize_convert(t)
-        self.tasks[-1].output_file = "{space_name}.mallet".format(space_name=task.space_name)
+        self.tasks[-1].out_file = "{space_name}.mallet".format(space_name=task.space_name)
 
         self.tasks.append(task)
 
