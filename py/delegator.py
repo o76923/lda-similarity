@@ -1,10 +1,13 @@
+import os
+from shutil import rmtree
 from datetime import datetime
 from functools import partial
 
-from py.configurator import ConfigSettings, CONVERT_TASK, TRAIN_TASK, INFERENCE_TASK
+from py.configurator import ConfigSettings, CONVERT_TASK, TRAIN_TASK, INFERENCE_TASK, SIMILARITY_TASK
 from py.file_converter import FileConverter
 from py.topic_trainer import TopicTrainer
 from py.inferencer import Inferencer
+from py.similarity_calculator import SimilarityCalculator
 
 
 def echo_message(msg, process, start):
@@ -21,21 +24,26 @@ if __name__ == "__main__":
     announcer = partial(echo_message, process="Delegator", start=start_time)
     cfg = ConfigSettings()
     announcer("Loaded Configuration")
+
+    os.mkdir(cfg.temp_dir)
+    announcer("Created temp directory at {}".format(cfg.temp_dir))
+
     for task in cfg.tasks:
-        for st in task.subtasks:
-            if st.type == CONVERT_TASK:
-                c = FileConverter(st, partial(echo_message, start=start_time))
-                c.main()
-        echo_message("Ran all subtasks", process="Delegator", start=start_time)
-        if task.type == TRAIN_TASK:
-            print("train task")
-            t = TopicTrainer(task, partial(echo_message, start=start_time))
+        if task.type == CONVERT_TASK:
+            t = FileConverter(task, partial(echo_message, start=start_time))
         elif task.type == INFERENCE_TASK:
-            print("inference task")
             t = Inferencer(task, partial(echo_message, start=start_time))
-        try:
-            t.main()
-        except NameError:
-            raise Exception("Task was of an invalid type")
+        elif task.type == TRAIN_TASK:
+            t = TopicTrainer(task, partial(echo_message, start=start_time))
+        elif task.type == SIMILARITY_TASK:
+            t = SimilarityCalculator(task, partial(echo_message, start=start_time))
+        else:
+            raise Exception("Task was an invalid type")
+        t.main()
         announcer("Finished Task")
+    announcer("Finished all tasks")
+
+    rmtree(cfg.temp_dir)
+    announcer("Removed temp directory")
+
     announcer("Done")

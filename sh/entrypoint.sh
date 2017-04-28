@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python -m py.delegator
+python -W ignore -m py.delegator

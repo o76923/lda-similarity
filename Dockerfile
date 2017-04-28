@@ -16,19 +16,10 @@ RUN echo "deb http://http.debian.net/debian jessie-backports main" > /etc/apt/so
     && ant \
     && apt-get purge --auto-remove -y wget ant openjdk-8-jdk \
     && rm -rf /var/lib/apt/lists/* \
-    && pip install pandas pyyaml
-
-
-#    && mkdir /app/jar \
-#    && cd /app \
-#    && mv CoreNLP-master/target/stanford-corenlp-3.7.0.jar ./jar/ \
-#    && mv stanford-corenlp-models-current.jar ./jar/ \
-#    && mv CoreNLP-master/lib/*.jar /app/jar/ \
-#    && mv CoreNLP-master/lib/tomcat/*.jar /app/jar/ \
-#    && mv CoreNLP-master/liblocal/*.jar /app/jar/ \
-#    && mv CoreNLP-master/libsrc/*.jar /app/jar/ \
-#    && rm -r CoreNLP-master \
-#    && pip install nltk \
-
+    && pip install \
+        pandas \
+        pyyaml \
+        scipy \
+        sklearn
 
 COPY ./ /app/

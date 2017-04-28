@@ -1,14 +1,14 @@
 import shutil
 import warnings
 import subprocess
-from py.configurator import ConvertSettings
+from py.configurator import Convert
 from functools import partial
 import os
 
 
 class FileConverter(object):
 
-    def __init__(self, config: ConvertSettings, announcer):
+    def __init__(self, config: Convert, announcer):
         self._cfg = config
         self.announcer = partial(announcer, process="FileConverter")
 
@@ -32,9 +32,9 @@ class FileConverter(object):
     def _import_file(self):
         cmd = "/app/Mallet/bin/mallet " \
               "import-file " \
-              "--input /app/data/temp/mallet_input.txt " \
+              "--input /app/data/temp/item.txt " \
               "--output /app/data/temp/{output_file} " \
-              "--keep-sequence ".format(output_file=self._cfg.output_file)
+              "--keep-sequence ".format(output_file=self._cfg.out_file)
         if self._cfg.pipe_from_space:
             cmd += "--use-pipe-from /app/data/spaces/{space_name}/topic_state.gz ".format(space_name=self._cfg.space_name)
         if self._cfg.stopword_file:
@@ -49,16 +49,13 @@ class FileConverter(object):
             cmd += "--stoplist-file /app/data/spaces/{0}/stopwords.txt".format(self._cfg.space_name)
         else:
             cmd += "--remove-stopwords"
-        subprocess.run(cmd, shell=True)
+        subprocess.run(["bash", "-c", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.announcer("Ran file_convert task in Mallet")
 
     def main(self):
-        try:
-            os.mkdir("/app/data/temp")
-        except FileExistsError:
-            pass
-
-        with open("/app/data/temp/mallet_input.txt".format(self._cfg.space_name, self._cfg.output_file), "w") as out_file:
+        self.announcer("Started to convert file")
+        with open("/app/data/temp/item.txt".format(self._cfg.space_name, self._cfg.out_file), "w") as out_file:
             for paragraph_id, text in self._load_files(self._cfg.file_list):
                 out_file.write("{}\ten\t{}\n".format(paragraph_id, text))
         self._import_file()
+        self.announcer("Converted file")
