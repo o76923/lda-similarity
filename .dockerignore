@@ -1,4 +1,7 @@
-lda.iml
+data/
+conf/
 .idea/
 .gitignore
-conf/
+lda.iml
+Dockerfile
+.dockerignore
